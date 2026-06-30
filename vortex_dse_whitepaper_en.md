@@ -15,8 +15,7 @@ gossip. The protocol imposes a globally shared, deterministic time structure on
 transactions, enabling independent and identical ordering at every node. We show
 that the minimum achievable slot period is **τ_min = 2×RTT** — the physical lower
 bound imposed by the speed of light — and confirm this experimentally across 13
-nodes in 13 countries. All 14 safety and liveness invariants are machine-checked
-in TLA+ (TLC + Apalache, 8M+ states verified, 0 errors).
+nodes in 13 countries. A core set of safety properties is machine-checked in TLA+ (TLC + Apalache + TLAPS, 8M+ states, 0 errors); the engine additionally enforces 14 runtime invariants (I1–I14) on every execution. The protocol sustains tens of thousands of transactions per second per node.
 
 ---
 
@@ -75,10 +74,13 @@ other.
 
 ---
 
-## 4. Formal verification
+## 4. Verification
 
-The following 14 invariants are machine-checked in TLA+ [10] (TLC model checker [11] +
-Apalache) across all reachable states:
+Vortex DSE is verified at two levels.
+
+**Machine-checked in TLA+.** A core set of safety properties is proven with the TLA+ toolchain [10]: the TLC model checker [11] (8,000,000+ states explored, 0 violations), Apalache [12] symbolic model checking (independent confirmation), and three TLAPS [13] deductive proofs verified by GitHub Actions CI — type-correctness, no future-dated admission, and strict exactly-once admission — together with per-slot Merkle agreement [14].
+
+**Enforced at runtime.** The engine additionally checks 14 invariants (I1–I14) on every execution; each node reports its result. Across all WAN tests, 14/14 pass on every node:
 
 | Invariant | Property | Status |
 |-----------|----------|--------|
@@ -90,9 +92,7 @@ Apalache) across all reachable states:
 | I8–I10 | E_t self-ejection at threshold, survivor protocol | PASS |
 | I11–I14 | Liveness under 80% packet loss, Byzantine resilience | PASS |
 
-TLC: 8,000,000+ states explored, 0 invariant violations. Apalache [12]: symbolic
-bounded model checking confirms results independently. Three TLAPS [13] deductive
-proofs machine-verified by GitHub Actions CI.
+The two levels are complementary: TLA+ proves the protocol's core properties for all reachable states of the model, while the runtime checks confirm the implementation upholds I1–I14 on every real execution.
 
 ---
 
@@ -133,6 +133,10 @@ physical lower bound.
 
 10,000 transactions, 13 nodes, 13 countries: all 13/13 converged, hash
 `d2300654140777fd7447b45fb3773512`, admitted = 5,000 per node.
+
+### 5.4 — Throughput
+
+Finality at the physical floor does not come at the cost of throughput. On a single Vultr VPS (1 vCPU), the engine sustains **40,000–58,000 transactions per second per node** with all 14 runtime invariants passing (14/14). On the WAN, the producer sustains **~39,000 tx/s** including Atlantic round-trip and NACK recovery. These are per-node sustained rates measured with the default engine, reported separately from the global convergence latency of §5.1–5.2.
 
 ---
 
