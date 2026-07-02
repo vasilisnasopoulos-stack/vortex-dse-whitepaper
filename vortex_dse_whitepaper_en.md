@@ -3,7 +3,7 @@
 **Vasilis Nasopoulos**
 vasilis_nasopoulos@hotmail.com
 
-*Draft · June 2026 · Confidential*
+*Public draft · June 2026*
 
 ---
 
@@ -59,8 +59,9 @@ the slot closes, all honest nodes hold identical ordered sets.
 
 The cadence **adapts to the sustained throughput of the hardware** — the system
 finds the natural rate of each machine rather than pushing it until it breaks. A
-**third-order control compensator** [15] tracks clock drift in real time; in WAN tests
-the drift residual was σ = 0.0 ns.
+**third-order control compensator** [15] tracks clock drift in real time; in WAN
+tests the residual tracking error was on the order of 100 μs — roughly 4×
+better than first-order smoothing.
 
 Three roles operate independently: **Producer** (injects transactions with
 C-slot labels), **Node** (admits transactions into the correct slot, rejects
@@ -131,8 +132,11 @@ physical lower bound.
 
 ### 5.3 — Volume test
 
-10,000 transactions, 13 nodes, 13 countries: all 13/13 converged, hash
-`d2300654140777fd7447b45fb3773512`, admitted = 5,000 per node.
+10,000 transactions submitted, 13 nodes, 13 countries: all 13/13 converged, hash
+`d2300654140777fd7447b45fb3773512`, admitted = 5,000 per node — **identical on
+every node**. The admission stack filters deterministically (duplicates,
+rate caps), so what matters for convergence is that all nodes admit the *same*
+set, which they did.
 
 ### 5.4 — Throughput
 
@@ -180,7 +184,10 @@ The base protocol assumes a partially synchronous network [2]. Byzantine fault
 tolerance in the classical BFT sense (tolerating f < n/3 malicious nodes) is not
 claimed for the base layer — Byzantine nodes are detected and ejected via the
 E_t self-ejection mechanism, but active equivocation by a majority of nodes is
-outside the current threat model. An optional BLS signature layer provides
+outside the current threat model. The base layer is therefore intended for
+deployments where participants are identifiable and ejectable — permissioned
+settlement networks, private infrastructure, and consortium systems — rather
+than open anonymous networks. An optional BLS signature layer provides
 classical BFT guarantees when required.
 
 ---
