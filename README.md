@@ -50,6 +50,9 @@ pip install -r demo/requirements.txt   # one-time install
 python demo/vortex_demo.py
 ```
 
+CI runs the same demo automatically on every push and pull request
+(see [`.github/workflows/demo.yml`](.github/workflows/demo.yml)).
+
 This demo is **not** the proprietary engine and does not claim to reproduce the
 full implementation or all runtime invariants.
 
