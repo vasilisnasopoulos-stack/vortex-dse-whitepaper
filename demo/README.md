@@ -19,8 +19,22 @@ idea described in the Vortex DSE whitepaper.
 
 ## Run
 
+Install the single dependency first (for coloured output):
+
+```bash
+pip install -r requirements.txt
+```
+
+Then run from the `demo/` folder:
+
 ```bash
 python3 vortex_demo.py
+```
+
+Or from the repository root:
+
+```bash
+python3 demo/vortex_demo.py
 ```
 
 Optional flags:
