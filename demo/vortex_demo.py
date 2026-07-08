@@ -89,7 +89,7 @@ def build_arrival_stream(
 
 
 def run_demo(node_count: int, slot_ms: int, seed: int) -> int:
-    epoch_ms = 1_700_000_000_000
+    epoch_ms = 0
     valid_txs, future_tx = build_transactions(epoch_ms, slot_ms)
     admission_horizon_ms = max(tx.canonical_time_ms for tx in valid_txs)
 
