@@ -41,11 +41,13 @@ transactions to independent nodes that:
 - reject future-dated entries beyond a fixed horizon,
 - produce the same ordered log and hash with no node-to-node communication.
 
-Run it with:
+Prerequisite: Python 3.11 or newer.
+
+Run it locally with:
 
 ```bash
 pip install -r demo/requirements.txt   # one-time install
-python3 demo/vortex_demo.py
+python demo/vortex_demo.py
 ```
 
 This demo is **not** the proprietary engine and does not claim to reproduce the
