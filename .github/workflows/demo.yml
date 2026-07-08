@@ -7,6 +7,9 @@ on:
 jobs:
   run-demo:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -17,7 +20,12 @@ jobs:
           python-version: "3.11"
 
       - name: Install demo dependencies
-        run: pip install -r demo/requirements.txt
+        run: |
+          if [ -f demo/requirements.txt ]; then
+            pip install -r demo/requirements.txt
+          else
+            pip install rich
+          fi
 
       - name: Run demo
         run: python demo/vortex_demo.py
