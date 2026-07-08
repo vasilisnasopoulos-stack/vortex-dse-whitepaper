@@ -9,6 +9,14 @@ import json
 import random
 from dataclasses import dataclass, field
 
+from rich.console import Console
+from rich.panel import Panel
+from rich.syntax import Syntax
+from rich.table import Table
+from rich import box
+
+console = Console()
+
 
 @dataclass(frozen=True)
 class Transaction:
@@ -111,30 +119,63 @@ def run_demo(node_count: int, slot_ms: int, seed: int) -> int:
     digests = {node.digest() for node in nodes}
     converged = len(digests) == 1
 
-    print("Vortex DSE public demo")
-    print(f"nodes={node_count} slot_ms={slot_ms} seed={seed}")
-    print(f"admission_horizon_ms={admission_horizon_ms}")
-    print()
+    console.print(
+        Panel(
+            f"[bold cyan]nodes[/bold cyan]={node_count}  "
+            f"[bold cyan]slot_ms[/bold cyan]={slot_ms}  "
+            f"[bold cyan]seed[/bold cyan]={seed}  "
+            f"[bold cyan]admission_horizon_ms[/bold cyan]={admission_horizon_ms}",
+            title="[bold white]Vortex DSE — public demo[/bold white]",
+            border_style="bright_blue",
+        )
+    )
+
+    table = Table(box=box.ROUNDED, border_style="bright_blue", show_header=True)
+    table.add_column("Node", style="bold white")
+    table.add_column("Admitted", justify="right", style="green")
+    table.add_column("Dup rejects", justify="right", style="yellow")
+    table.add_column("Future rejects", justify="right", style="yellow")
+    table.add_column("Digest (first 16)", style="dim cyan")
 
     for node in nodes:
-        print(
-            f"{node.name}: admitted={len(node.admitted)} "
-            f"duplicate_rejects={node.rejected_duplicates} "
-            f"future_rejects={node.rejected_future} "
-            f"digest={node.digest()[:16]}"
+        table.add_row(
+            node.name,
+            str(len(node.admitted)),
+            str(node.rejected_duplicates),
+            str(node.rejected_future),
+            node.digest()[:16],
         )
 
-    print()
-    print(f"converged={'YES' if converged else 'NO'}")
+    console.print(table)
+    console.print()
+
     if converged:
-        print(f"shared_digest={nodes[0].digest()}")
-        print("ordered_log=")
-        print(json.dumps(nodes[0].ordered_log(), indent=2))
+        console.print(
+            Panel(
+                f"[bold green]✓ CONVERGED[/bold green]\n"
+                f"[dim]shared digest:[/dim] [cyan]{nodes[0].digest()}[/cyan]",
+                border_style="green",
+            )
+        )
+        console.print()
+        log_json = json.dumps(nodes[0].ordered_log(), indent=2)
+        console.print(Panel(
+            Syntax(log_json, "json", theme="monokai"),
+            title="[bold white]Ordered log[/bold white]",
+            border_style="bright_blue",
+        ))
         return 0
 
+    console.print(
+        Panel("[bold red]✗ NOT CONVERGED[/bold red]", border_style="red")
+    )
     for node in nodes:
-        print(f"{node.name}_log=")
-        print(json.dumps(node.ordered_log(), indent=2))
+        log_json = json.dumps(node.ordered_log(), indent=2)
+        console.print(Panel(
+            Syntax(log_json, "json", theme="monokai"),
+            title=f"[bold white]{node.name} log[/bold white]",
+            border_style="red",
+        ))
     return 1
 
 

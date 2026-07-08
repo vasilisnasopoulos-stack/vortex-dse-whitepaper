@@ -44,6 +44,7 @@ transactions to independent nodes that:
 Run it with:
 
 ```bash
+pip install -r demo/requirements.txt   # one-time install
 python3 demo/vortex_demo.py
 ```
 
