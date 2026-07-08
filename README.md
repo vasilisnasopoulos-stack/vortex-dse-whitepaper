@@ -25,8 +25,30 @@ Markdown version: [vortex_dse_whitepaper_en.md](vortex_dse_whitepaper_en.md).
 
 ## Scope
 
-This repository contains the **whitepaper only**. The engine and the underlying
-mathematical derivations remain proprietary. IP registered and timestamped.
+This repository contains the **whitepaper** and a small **public demo** of the
+deterministic slot-ordering idea described in the paper. The engine and the
+underlying mathematical derivations remain proprietary. IP registered and
+timestamped.
+
+## Public demo
+
+The repository includes a toy educational demo in
+[`/demo/vortex_demo.py`](demo/vortex_demo.py). It shows a producer broadcasting
+transactions to independent nodes that:
+
+- assign the same canonical slot,
+- reject duplicates,
+- reject future-dated entries beyond a fixed horizon,
+- produce the same ordered log and hash with no node-to-node communication.
+
+Run it with:
+
+```bash
+python3 demo/vortex_demo.py
+```
+
+This demo is **not** the proprietary engine and does not claim to reproduce the
+full implementation or all runtime invariants.
 
 Public formal TLA+ specifications:
 <https://github.com/vasilisnasopoulos-stack>
