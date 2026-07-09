@@ -9,6 +9,19 @@ experimentally across 13 nodes in 13 countries &mdash; and its 14 safety and
 liveness invariants are machine-checked in TLA+ (TLC + Apalache, 8M+ states, 0
 errors).
 
+## Try it in 30 seconds
+
+```bash
+git clone https://github.com/vasilisnasopoulos-stack/vortex-dse-whitepaper.git
+cd vortex-dse-whitepaper
+pip install -r demo/requirements.txt
+python demo/vortex_demo.py
+```
+
+Independent nodes admit the same transactions in a different arrival order
+each and still converge on an identical ordered log and hash &mdash; no
+node-to-node communication. Details: [`/demo`](demo/README.md).
+
 ## Read the whitepaper
 
 **[vortex_dse_whitepaper.pdf](vortex_dse_whitepaper.pdf)** &mdash; full paper
@@ -50,8 +63,8 @@ pip install -r demo/requirements.txt   # one-time install
 python demo/vortex_demo.py
 ```
 
-CI runs the same demo automatically on every push and pull request
-(see [`.github/workflows/demo.yml`](.github/workflows/demo.yml)).
+A CI workflow can also run the demo on demand
+(see [`.github/workflows/demo.yml`](.github/workflows/demo.yml), manual trigger).
 
 This demo is **not** the proprietary engine and does not claim to reproduce the
 full implementation or all runtime invariants.
