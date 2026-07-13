@@ -69,6 +69,17 @@ A CI workflow can also run the demo on demand
 This demo is **not** the proprietary engine and does not claim to reproduce the
 full implementation or all runtime invariants.
 
+## Before / After: fixing a real consensus bug
+
+[`/demo/before_after`](demo/before_after/README.md) takes a real, well-known
+open-source project ([`blockchain-hackernoon`](https://github.com/harrywang/blockchain-hackernoon),
+the code behind the *"Learn Blockchains by Building One"* tutorial) and shows
+its naive longest-chain-wins rule permanently forking when two nodes mine
+different transactions at the same height &mdash; then shows the same
+transactions converging deterministically using the public ordering rule
+from this repo's demo. See the linked README for exactly what this does and
+does not prove.
+
 Public formal TLA+ specifications:
 <https://github.com/vasilisnasopoulos-stack>
 
