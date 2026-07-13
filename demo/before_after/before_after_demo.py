@@ -26,6 +26,58 @@ import json
 import random
 from dataclasses import dataclass, field
 
+# ── ANSI colour helpers ──────────────────────────────────────────────────────
+
+_RESET  = "\033[0m"
+_BOLD   = "\033[1m"
+_DIM    = "\033[2m"
+_RED    = "\033[91m"
+_GREEN  = "\033[92m"
+_YELLOW = "\033[93m"
+_CYAN   = "\033[96m"
+_WHITE  = "\033[97m"
+_GREY   = "\033[90m"
+
+import re as _re
+
+_ANSI_RE = _re.compile(r"\033\[[0-9;]*m")
+
+def _c(text: str, *codes: str) -> str:
+    return "".join(codes) + text + _RESET
+
+def _visible_len(text: str) -> int:
+    return len(_ANSI_RE.sub("", text))
+
+def _header(title: str, *, width: int = 62, colour: str = _CYAN) -> str:
+    inner = width - 2
+    top    = colour + "╔" + "═" * inner + "╗" + _RESET
+    bottom = colour + "╚" + "═" * inner + "╝" + _RESET
+    pad_total = max(0, inner - _visible_len(title))
+    left  = " " * (pad_total // 2)
+    right = " " * (pad_total - pad_total // 2)
+    mid_row = colour + "║" + _RESET + _c(left + title + right, _BOLD + _WHITE) + colour + "║" + _RESET
+    return "\n".join([top, mid_row, bottom])
+
+
+def _box(title: str, lines: list[str], *, width: int = 62, colour: str = _CYAN) -> str:
+    inner = width - 2
+    top    = colour + "╔" + "═" * inner + "╗" + _RESET
+    mid    = colour + "╠" + "═" * inner + "╣" + _RESET
+    bottom = colour + "╚" + "═" * inner + "╝" + _RESET
+
+    def row(text: str = "", bold: bool = False) -> str:
+        style = (_BOLD if bold else "") + _WHITE
+        pad = " " * max(0, inner - _visible_len(text))
+        return colour + "║" + _RESET + _c(text, style) + _c(pad, style) + colour + "║" + _RESET
+
+    parts = [top, row(f"  {title}", bold=True), mid]
+    for line in lines:
+        parts.append(row(f"  {line}"))
+    parts.append(bottom)
+    return "\n".join(parts)
+
+
+# ── Data model ───────────────────────────────────────────────────────────────
 
 @dataclass(frozen=True)
 class Transaction:
@@ -64,16 +116,34 @@ class Node:
         return hashlib.sha256(payload.encode()).hexdigest()
 
 
-def main() -> int:
-    print("=== BEFORE: blockchain-hackernoon naive longest-chain-wins ===")
-    print("Node A mines block #3 with tx: Alice->Bob:5")
-    print("Node B mines block #3 (same height, same previous_hash) with tx: Carol->Dave:9")
-    print("len(chain_A) == len(chain_B) -> resolve_conflicts() never replaces either chain")
-    print("Result: PERMANENT FORK (verified live against the real project).\n")
+# ── Main ─────────────────────────────────────────────────────────────────────
 
-    print("=== AFTER: same two conflicting transactions, deterministic slot ordering ===")
+def main() -> int:
+    # ── header ──────────────────────────────────────────────────────────────
+    print()
+    print(_header("VORTEX DSE  ·  Before / After Demo"))
+    print()
+
+    # ── BEFORE ──────────────────────────────────────────────────────────────
+    before_lines = [
+        _c("Project : ", _DIM + _WHITE) + "blockchain-hackernoon (harrywang)",
+        _c("Rule    : ", _DIM + _WHITE) + "longest valid chain wins",
+        "",
+        _c("Node A  ", _YELLOW) + "mines block #3  →  tx: Alice → Bob   : 5",
+        _c("Node B  ", _YELLOW) + "mines block #3  →  tx: Carol → Dave  : 9",
+        _c("        ", _WHITE)  + "(same height, same previous_hash)",
+        "",
+        _c("len(chain_A) == len(chain_B)", _DIM + _WHITE),
+        _c("→ resolve_conflicts() never triggers on either side", _DIM + _WHITE),
+        "",
+        _c("✗  PERMANENT FORK", _RED + _BOLD) + _c("  (verified live against the real project)", _DIM),
+    ]
+    print(_box("BEFORE  ·  naive longest-chain-wins", before_lines, colour=_RED))
+    print()
+
+    # ── AFTER ────────────────────────────────────────────────────────────────
     epoch_ms = 0
-    slot_ms = 500
+    slot_ms  = 500
     tx_a = Transaction("tx-a", epoch_ms + 120, "transfer:alice->bob:5")
     tx_b = Transaction("tx-b", epoch_ms + 340, "transfer:carol->dave:9")
 
@@ -94,17 +164,59 @@ def main() -> int:
     for tx in order_b:
         node_b.ingest(tx)
 
-    print(f"Node A arrival order: {[t.tx_id for t in order_a]}")
-    print(f"Node B arrival order: {[t.tx_id for t in order_b]}")
-    print(f"Node A digest: {node_a.digest()[:16]}...")
-    print(f"Node B digest: {node_b.digest()[:16]}...")
+    arrival_a = " → ".join(t.tx_id for t in order_a)
+    arrival_b = " → ".join(t.tx_id for t in order_b)
+    digest_a  = node_a.digest()
+    digest_b  = node_b.digest()
+    converged = digest_a == digest_b
 
-    if node_a.digest() == node_b.digest():
-        print("\n✓ CONVERGED -- same ordered log despite different arrival order,")
-        print("  no leader election, no voting, no gossip between the two nodes.")
-        return 0
-    print("\n✗ NOT CONVERGED")
-    return 1
+    log_a = node_a.ordered_log()
+    log_b = node_b.ordered_log()
+
+    after_lines = [
+        _c("Rule    : ", _DIM + _WHITE) + "deterministic (slot, timestamp, tx_id) ordering",
+        "",
+        _c("Node A  ", _YELLOW) + f"arrival order : {arrival_a}",
+        _c("Node B  ", _YELLOW) + f"arrival order : {arrival_b}",
+        "",
+        _c("Node A  ", _YELLOW) + "ordered log :",
+    ]
+    for entry in log_a:
+        after_lines.append(
+            _c("        ", _WHITE) +
+            _c(f"slot {entry['slot']}", _CYAN) +
+            f"  {entry['tx_id']}  {entry['payload']}"
+        )
+    after_lines += [
+        "",
+        _c("Node B  ", _YELLOW) + "ordered log :",
+    ]
+    for entry in log_b:
+        after_lines.append(
+            _c("        ", _WHITE) +
+            _c(f"slot {entry['slot']}", _CYAN) +
+            f"  {entry['tx_id']}  {entry['payload']}"
+        )
+    after_lines += [
+        "",
+        _c("Node A digest : ", _DIM + _WHITE) + _c(digest_a[:24] + "…", _GREY),
+        _c("Node B digest : ", _DIM + _WHITE) + _c(digest_b[:24] + "…", _GREY),
+        "",
+    ]
+
+    if converged:
+        after_lines += [
+            _c("✓  CONVERGED", _GREEN + _BOLD),
+            _c("   same ordered log despite different arrival order", _DIM),
+            _c("   no leader election · no voting · no gossip", _DIM),
+        ]
+    else:
+        after_lines.append(_c("✗  NOT CONVERGED", _RED + _BOLD))
+
+    print(_box("AFTER  ·  Vortex DSE deterministic slot ordering", after_lines, colour=_GREEN))
+    print()
+
+    return 0 if converged else 1
 
 
 if __name__ == "__main__":
