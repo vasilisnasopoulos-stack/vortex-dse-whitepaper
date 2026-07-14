@@ -2,14 +2,13 @@
 
 **Deterministic Consensus at the Physical Lower Bound**
 
-Vortex DSE (Deterministic Slot Engine) is a distributed consensus protocol that
-reaches finality **without leader election, voting, or gossip**. It operates at
-the physical lower bound **&tau;_min = 2&times;RTT** &mdash; confirmed
-experimentally across 13 nodes in 13 countries &mdash; and its 14 safety and
-liveness invariants are machine-checked in TLA+ (TLC + Apalache, 8M+ states, 0
-errors).
+Vortex DSE (Deterministic Slot Engine) is a distributed consensus protocol that reaches finality **without leader election, voting, or gossip**. It operates at the physical lower bound **τ_min = 2×RTT** — confirmed experimentally across 13 nodes in 13 countries — and its 14 safety and liveness invariants are machine-checked in TLA+ (TLC + Apalache, 8M+ states, 0 errors).
 
-## Try it in 30 seconds
+---
+
+## 🚀 Try it in 30 seconds
+
+No setup. No dependencies (except Python 3.11+). Just clone and run:
 
 ```bash
 git clone https://github.com/vasilisnasopoulos-stack/vortex-dse-whitepaper.git
@@ -18,75 +17,159 @@ pip install -r demo/requirements.txt
 python demo/vortex_demo.py
 ```
 
-Independent nodes admit the same transactions in a different arrival order
-each and still converge on an identical ordered log and hash &mdash; no
-node-to-node communication. Details: [`/demo`](demo/README.md).
+### What you'll see
 
-## Read the whitepaper
+**Three independent nodes broadcast the same transactions in different arrival orders** — yet converge on an identical ordered log and cryptographic hash with **zero node-to-node communication**.
 
-**[vortex_dse_whitepaper.pdf](vortex_dse_whitepaper.pdf)** &mdash; full paper
-(cover, figures, references).
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Vortex DSE — public demo                                      ┃
+┃ nodes=3  slot_ms=500  seed=42  admission_horizon_ms=1340    ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-Markdown version: [vortex_dse_whitepaper_en.md](vortex_dse_whitepaper_en.md).
+┏━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Node   ┃ Admit  ┃ Dup Rj.  ┃ Fut. Rj.   ┃ Digest (first 16) ┃
+┡━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ node-1 │ 6      │ 2        │ 1          │ a7f2c8e91d34... │
+│ node-2 │ 6      │ 2        │ 1          │ a7f2c8e91d34... │
+│ node-3 │ 6      │ 2        │ 1          │ a7f2c8e91d34... │
+└────────┴────────┴──────────┴────────────┴─────────────────┘
 
-## Key results
-
-- **&tau;_min = 2&times;RTT** &mdash; the physical floor on global consensus,
-  reached with zero coordination.
-- 13 nodes / 13 countries converge on an identical state hash.
-- Formally verified: 14 invariants, machine-checked (TLA+ / Apalache / TLAPS).
-
-## Scope
-
-This repository contains the **whitepaper** and a small **public demo** of the
-deterministic slot-ordering idea described in the paper. The engine and the
-underlying mathematical derivations remain proprietary. IP registered and
-timestamped.
-
-## Public demo
-
-The repository includes a toy educational demo in
-[`/demo/vortex_demo.py`](demo/vortex_demo.py). It shows a producer broadcasting
-transactions to independent nodes that:
-
-- assign the same canonical slot,
-- reject duplicates,
-- reject future-dated entries beyond a fixed horizon,
-- produce the same ordered log and hash with no node-to-node communication.
-
-Prerequisite: Python 3.11 or newer.
-
-Run it locally with:
-
-```bash
-pip install -r demo/requirements.txt   # one-time install
-python demo/vortex_demo.py
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ✓ CONVERGED                                             ┃
+┃ shared digest: a7f2c8e91d34f5a8c6b2e9f7d1c3a4b9 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
 
-A CI workflow can also run the demo on demand
-(see [`.github/workflows/demo.yml`](.github/workflows/demo.yml), manual trigger).
+Try with different parameters:
 
-This demo is **not** the proprietary engine and does not claim to reproduce the
-full implementation or all runtime invariants.
+```bash
+# 5 nodes, 500ms slots
+python demo/vortex_demo.py --nodes 5 --slot-ms 500
 
-## Before / After: fixing a real consensus bug
+# 7 nodes, 1000ms slots, different shuffle seed
+python demo/vortex_demo.py --nodes 7 --slot-ms 1000 --seed 99
+```
 
-[`/demo/before_after`](demo/before_after/README.md) takes a real, well-known
-open-source project ([`blockchain-hackernoon`](https://github.com/harrywang/blockchain-hackernoon),
-the code behind the *"Learn Blockchains by Building One"* tutorial) and shows
-its naive longest-chain-wins rule permanently forking when two nodes mine
-different transactions at the same height &mdash; then shows the same
-transactions converging deterministically using the public ordering rule
-from this repo's demo. See the linked README for exactly what this does and
-does not prove.
+**Details:** [`/demo`](demo/README.md)
 
-Public formal TLA+ specifications:
-<https://github.com/vasilisnasopoulos-stack>
+---
 
-## License
+## 📖 Read the Whitepaper
 
-&copy; 2026 Vasilis Nasopoulos. Licensed under
-**[CC BY-NC-ND 4.0](LICENSE)** &mdash; you may share it with attribution, but
-**not** for commercial purposes and **not** in modified form.
+**[vortex_dse_whitepaper.pdf](vortex_dse_whitepaper.pdf)** — full paper with figures, proofs, and experimental validation.
 
-Contact: vasilis_nasopoulos@hotmail.com
+Markdown version: [vortex_dse_whitepaper_en.md](vortex_dse_whitepaper_en.md)
+
+---
+
+## 🎯 Key Results
+
+| Result | Value |
+|--------|-------|
+| **Latency bound** | τ_min = 2×RTT (physical floor, no coordination) |
+| **Validation** | 13 nodes across 13 countries converge to identical state hash |
+| **Safety proofs** | 14 invariants, machine-checked in TLA+ (Apalache + TLAPS, 8M+ states) |
+
+---
+
+## 📋 Scope
+
+This repository contains:
+
+- ✅ **The whitepaper** — full technical specification and proofs
+- ✅ **A public demo** — educational, runnable proof-of-concept showing deterministic slot ordering
+- ✅ **Before/After case study** — fixing a real consensus bug in an open-source blockchain tutorial
+
+**Not included** (proprietary):
+
+- The production engine implementation
+- The exact tie-breaking rule for same-slot transactions
+- The full runtime invariant set
+- Byzantine-fault-handling extensions
+
+---
+
+## 🔬 The Demo Explained
+
+The toy demo in [`/demo/vortex_demo.py`](demo/vortex_demo.py) illustrates the core idea:
+
+### What it does:
+
+1. **Simulates a producer** broadcasting transactions to N independent nodes
+2. **Each node independently assigns** transactions to canonical time slots
+3. **Duplicate rejection** — identical tx_ids are ignored (seen_ids set)
+4. **Admission horizon** — future-dated transactions are rejected
+5. **Deterministic ordering** — within each slot, transactions are ordered by:
+   - canonical_time_ms (timestamp)
+   - tx_id (unique identifier)
+6. **Convergence check** — all nodes compute the same SHA256 digest over their ordered log
+
+### What it doesn't claim:
+
+- This is **not** the proprietary engine
+- It does not reproduce the full runtime invariant set
+- **Zero network communication** in this demo; the real system handles Byzantine adversaries
+- It is an **educational proof-of-concept only**
+
+---
+
+## 🔄 Before / After: A Real Consensus Bug
+
+The repository includes [`/demo/before_after`](demo/before_after/) — a case study showing:
+
+1. **The bug**: A real, well-known open-source project (`blockchain-hackernoon`) uses a "longest-chain-wins" rule that **fails when two nodes mine conflicting blocks at the same height**. No tie-breaker exists; the nodes fork permanently.
+
+2. **The fix**: The same transactions, fed to two independent nodes using the **Vortex DSE ordering rule**, converge deterministically with identical logs and digests — **with zero messages** between the nodes.
+
+Run it:
+
+```bash
+python demo/before_after/before_after_demo.py
+```
+
+---
+
+## 🔗 Formal Specifications
+
+Public TLA+ formal specifications (machine-checked, no errors):
+
+- [vortex-dse-cslot-spec](https://github.com/vasilisnasopoulos-stack/vortex-dse-cslot-spec) — TLA+ spec + reference implementation
+- [vortex-dse-cslot-proofs](https://github.com/vasilisnasopoulos-stack/vortex-dse-cslot-proofs) — TLAPS machine-checked safety proofs
+- [vortex-merkle-agreement](https://github.com/vasilisnasopoulos-stack/vortex-merkle-agreement) — per-slot Merkle agreement spec
+
+---
+
+## 🛠️ System Requirements
+
+- **Python 3.11+** (for the demo)
+- **Git** (to clone the repository)
+
+That's it. The demo uses only the Python standard library plus `rich` for colored output.
+
+---
+
+## 📜 License
+
+© 2026 Vasilis Nasopoulos. Licensed under **[CC BY-NC-ND 4.0](LICENSE)** — you may share it with attribution, but **not** for commercial purposes and **not** in modified form.
+
+---
+
+## 📧 Contact
+
+Questions, feedback, or collaboration inquiries:
+
+**vasilis_nasopoulos@hotmail.com**
+
+---
+
+## 🤝 Contributing
+
+This is a research artifact. If you find the work interesting:
+
+- ⭐ Star this repository
+- 📢 Share it in your networks (HN, Reddit, academic communities)
+- 💬 Open an issue with questions or feedback
+- 🔬 If you're a researcher, consider citing the whitepaper
+
+---
