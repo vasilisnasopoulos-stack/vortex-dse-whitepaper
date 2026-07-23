@@ -55,6 +55,16 @@ python demo/vortex_demo.py --nodes 7 --slot-ms 1000 --seed 99
 
 ---
 
+## 🧪 Beta: agent coordination endpoint
+
+A "who-wins" arbitration primitive for exclusive-action coordination
+between AI agents — deterministic resolution, no leader election, no
+voting, no gossip, formally verified core. Open beta, token-gated.
+
+**[Request access / read the details →](BETA.md)**
+
+---
+
 ## 📖 Read the Whitepaper
 
 **[vortex_dse_whitepaper.pdf](vortex_dse_whitepaper.pdf)** — full paper with figures, proofs, and experimental validation.
